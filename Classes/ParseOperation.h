@@ -53,7 +53,7 @@ extern NSString *kEarthquakesMsgErrorKey;
 
 @class Earthquake;
 
-@interface ParseOperation : NSOperation {
+@interface ParseOperation : NSObject {
   NSData *earthquakeData;
   
 @private
@@ -70,8 +70,10 @@ extern NSString *kEarthquakesMsgErrorKey;
   NSManagedObjectContext *managedObjectContext;
 }
 
-@property (copy, readonly) NSData *earthquakeData;
+@property (nonatomic, readonly, retain) NSData *earthquakeData;
 
-@property (retain) NSManagedObjectContext *managedObjectContext;
+@property (nonatomic, retain) NSManagedObjectContext *managedObjectContext;
 
+- (void)loadData;
+- (id)initWithData:(NSData *)parseData;
 @end

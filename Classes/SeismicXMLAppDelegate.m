@@ -57,14 +57,14 @@
 #pragma mark SeismicXMLAppDelegate () 
 
 // forward declarations
-@interface SeismicXMLAppDelegate ()
-
-@property (nonatomic, retain) NSURLConnection *earthquakeFeedConnection;
-@property (nonatomic, retain) NSMutableData *earthquakeData;    // the data returned from the NSURLConnection
-@property (nonatomic, retain) NSOperationQueue *parseQueue;     // the queue that manages our NSOperation for parsing earthquake data
-
-- (void)handleError:(NSError *)error;
-@end
+//@interface SeismicXMLAppDelegate ()
+//
+//@property (nonatomic, retain) NSURLConnection *earthquakeFeedConnection;
+//@property (nonatomic, retain) NSMutableData *earthquakeData;    // the data returned from the NSURLConnection
+//@property (nonatomic, retain) NSOperationQueue *parseQueue;     // the queue that manages our NSOperation for parsing earthquake data
+//
+//- (void)handleError:(NSError *)error;
+//@end
 
 
 #pragma mark -
@@ -75,28 +75,28 @@
 @synthesize window;
 @synthesize navigationController;
 @synthesize rootViewController;
-@synthesize earthquakeFeedConnection;
-@synthesize earthquakeData;
-@synthesize parseQueue;
+//@synthesize earthquakeFeedConnection;
+//@synthesize earthquakeData;
+//@synthesize parseQueue;
 
 
 - (void)dealloc {
-    [earthquakeFeedConnection cancel];
-    [earthquakeFeedConnection release];
-    
-    [earthquakeData release];
+//    [earthquakeFeedConnection cancel];
+//    [earthquakeFeedConnection release];
+//    
+//    [earthquakeData release];
     [navigationController release];
     [rootViewController release];
     [window release];
     
-    [parseQueue release];
+//    [parseQueue release];
     
     [managedObjectContext release];
     [managedObjectModel release];
     [persistentStoreCoordinator release];
     
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:kAddEarthquakesNotif object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:kEarthquakesErrorNotif object:nil];
+//    [[NSNotificationCenter defaultCenter] removeObserver:self name:kAddEarthquakesNotif object:nil];
+//    [[NSNotificationCenter defaultCenter] removeObserver:self name:kEarthquakesErrorNotif object:nil];
     
     [super dealloc];
 }
@@ -134,33 +134,30 @@
     // IMPORTANT! The main thread of the application should never be blocked!
     // Also, avoid synchronous network access on any thread.
     //
-    static NSString *feedURLString = @"http://earthquake.usgs.gov/eqcenter/catalogs/7day-M2.5.xml";
-    NSURLRequest *earthquakeURLRequest =
-        [NSURLRequest requestWithURL:[NSURL URLWithString:feedURLString]];
-    self.earthquakeFeedConnection =
-    [[[NSURLConnection alloc] initWithRequest:earthquakeURLRequest delegate:self] autorelease];
+//    self.earthquakeFeedConnection =
+//    [[[NSURLConnection alloc] initWithRequest:earthquakeURLRequest delegate:self] autorelease];
     
     // Test the validity of the connection object. The most likely reason for the connection object
     // to be nil is a malformed URL, which is a programmatic error easily detected during development.
     // If the URL is more dynamic, then you should implement a more flexible validation technique,
     // and be able to both recover from errors and communicate problems to the user in an
     // unobtrusive manner.
-    NSAssert(self.earthquakeFeedConnection != nil, @"Failure to create URL connection.");
+//    NSAssert(self.earthquakeFeedConnection != nil, @"Failure to create URL connection.");
     
     // Start the status bar network activity indicator. We'll turn it off when the connection
     // finishes or experiences an error.
-    [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+//    [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+//    
+//    parseQueue = [NSOperationQueue new];
     
-    parseQueue = [NSOperationQueue new];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(addEarthquakes:)
-                                                 name:kAddEarthquakesNotif
-                                               object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(earthquakesError:)
-                                                 name:kEarthquakesErrorNotif
-                                               object:nil];
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//                                             selector:@selector(addEarthquakes:)
+//                                                 name:kAddEarthquakesNotif
+//                                               object:nil];
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//                                             selector:@selector(earthquakesError:)
+//                                                 name:kEarthquakesErrorNotif
+//                                               object:nil];
 }
 
 
@@ -171,6 +168,7 @@
 // how the connection object, which is working in the background, can asynchronously communicate back
 // to its delegate on the thread from which it was started - in this case, the main thread.
 //
+/*
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
     // check for HTTP status code for proxy authentication failures
     // anything in the 200 to 299 range is considered successful,
@@ -236,33 +234,34 @@
     // so we no longer need a reference to it in the main thread.
     self.earthquakeData = nil;
 }
+*/
 
 // Handle errors in the download by showing an alert to the user. This is a very
 // simple way of handling the error, partly because this application does not have any offline
 // functionality for the user. Most real applications should handle the error in a less obtrusive
 // way and provide offline functionality to the user.
 //
-- (void)handleError:(NSError *)error {
-    NSString *errorMessage = [error localizedDescription];
-    UIAlertView *alertView =
-    [[UIAlertView alloc] initWithTitle:
-     NSLocalizedString(@"Error Title",
-                       @"Title for alert displayed when download or parse error occurs.")
-                               message:errorMessage
-                              delegate:nil
-                     cancelButtonTitle:@"OK"
-                     otherButtonTitles:nil];
-    [alertView show];
-    [alertView release];
-}
-
-// Our NSNotification callback from the running NSOperation when a parsing error has occurred
+//- (void)handleError:(NSError *)error {
+//    NSString *errorMessage = [error localizedDescription];
+//    UIAlertView *alertView =
+//    [[UIAlertView alloc] initWithTitle:
+//     NSLocalizedString(@"Error Title",
+//                       @"Title for alert displayed when download or parse error occurs.")
+//                               message:errorMessage
+//                              delegate:nil
+//                     cancelButtonTitle:@"OK"
+//                     otherButtonTitles:nil];
+//    [alertView show];
+//    [alertView release];
+//}
 //
-- (void)earthquakesError:(NSNotification *)notif {
-    assert([NSThread isMainThread]);
-    
-    [self handleError:[[notif userInfo] valueForKey:kEarthquakesMsgErrorKey]];
-}
+//// Our NSNotification callback from the running NSOperation when a parsing error has occurred
+////
+//- (void)earthquakesError:(NSNotification *)notif {
+//    assert([NSThread isMainThread]);
+//    
+//    [self handleError:[[notif userInfo] valueForKey:kEarthquakesMsgErrorKey]];
+//}
 
 
 #pragma mark -

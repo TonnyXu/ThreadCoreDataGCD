@@ -60,10 +60,10 @@
     
 @private
     // for downloading the xml data
-    NSURLConnection *earthquakeFeedConnection;
-    NSMutableData *earthquakeData;
-    
-    NSOperationQueue *parseQueue;
+//    NSURLConnection *earthquakeFeedConnection;
+//    NSMutableData *earthquakeData;
+//    
+//    NSOperationQueue *parseQueue;
 }
 
 @property (nonatomic, retain) IBOutlet UIWindow *window;

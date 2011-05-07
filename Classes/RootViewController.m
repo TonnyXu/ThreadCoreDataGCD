@@ -47,6 +47,7 @@
 
 #import "RootViewController.h"
 #import "Earthquake.h"
+#import "ParseOperation.h"
 
 @implementation RootViewController
 
@@ -67,6 +68,18 @@
 
 - (void)viewDidLoad {
   [super viewDidLoad];
+  
+  dispatch_queue_t mocQueue = dispatch_queue_create("mocQueue", NULL);
+  dispatch_async(mocQueue, ^ {
+    ParseOperation *parser = [[ParseOperation alloc] initWithData:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(mergeChanges:)
+                                                 name:NSManagedObjectContextDidSaveNotification
+                                               object:parser.managedObjectContext];
+    [parser loadData];
+    [parser release];
+  });
+  
   
   // The table row height is not the standard value. Since all the rows have the same height,
   // it is more efficient to set this property on the table, rather than using the delegate
@@ -100,6 +113,7 @@
   [super viewDidUnload];
   
   self.twoWeeksAgo = nil;
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 // On-demand initializer for read-only property.

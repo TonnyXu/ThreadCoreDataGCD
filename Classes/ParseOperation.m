@@ -63,9 +63,14 @@ NSString *kEarthquakesMsgErrorKey = @"EarthquakesMsgErrorKey";
 
 
 @interface ParseOperation () <NSXMLParserDelegate>
+@property (nonatomic, readwrite, retain) NSData *earthquakeData;
+
 @property (nonatomic, retain) Earthquake *currentEarthquakeObject;
 @property (nonatomic, retain) NSMutableArray *currentParseBatch;
 @property (nonatomic, retain) NSMutableString *currentParsedCharacterData;
+
+- (void)main;
+
 @end
 
 @implementation ParseOperation
@@ -76,7 +81,7 @@ NSString *kEarthquakesMsgErrorKey = @"EarthquakesMsgErrorKey";
 {
   self = [super init];
   if (self) {    
-    earthquakeData = [parseData copy];
+    self.earthquakeData = [NSMutableData dataWithCapacity:10];
     
     dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
@@ -95,9 +100,39 @@ NSString *kEarthquakesMsgErrorKey = @"EarthquakesMsgErrorKey";
   return self;
 }
 
+- (void)loadData{
+  dispatch_queue_t urlQueue = dispatch_queue_create("urlQueue", NULL);
+  
+  static NSString *feedURLString = @"http://earthquake.usgs.gov/eqcenter/catalogs/7day-M2.5.xml";
+  NSURLRequest *earthquakeURLRequest =
+  [NSURLRequest requestWithURL:[NSURL URLWithString:feedURLString]];
+  
+  NSURLResponse *theResponse = nil;
+  NSError *error = nil;
+
+  dispatch_async(urlQueue, ^ {
+    self.earthquakeData = [NSURLConnection sendSynchronousRequest:earthquakeURLRequest 
+                                                returningResponse:&theResponse 
+                                                            error:&error];
+    if (nil == theResponse) {
+      NSLog(@"Damn it, response it nil, something is wrong.");
+      abort();
+    }
+    if ( nil != error) {
+      NSLog(@"\nResponse:\n%@\nError:\n%@\n", theResponse, error);
+      abort();
+    }
+    
+    // Got the data, no error.
+    dispatch_async(dispatch_get_current_queue(), ^{
+      [self main];
+    });
+  });
+}
+
 // a batch of earthquakes are ready to be added
 - (void)addEarthquakesToList:(NSArray *)earthquakes {
-  assert([NSThread isMainThread]);
+//  assert([NSThread isMainThread]);
   
   NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
   NSEntityDescription *ent = [NSEntityDescription entityForName:@"Earthquake" inManagedObjectContext:self.managedObjectContext];
@@ -109,6 +144,9 @@ NSString *kEarthquakesMsgErrorKey = @"EarthquakesMsgErrorKey";
   // before adding the earthquake, first check if there's a duplicate in the backing store
   NSError *error = nil;
   Earthquake *earthquake = nil;
+  NSLog(@"\n================\n"
+        "Got %d data.\n"
+        "================\n", [earthquakes count]);
   for (earthquake in earthquakes) {
     fetchRequest.predicate = [NSPredicate predicateWithFormat:@"location = %@ AND date = %@", earthquake.location, earthquake.date];
     
@@ -121,6 +159,12 @@ NSString *kEarthquakesMsgErrorKey = @"EarthquakesMsgErrorKey";
   
   [fetchRequest release];
   
+  if ([managedObjectContext hasChanges]) {
+    NSLog(@"Have some changes!");
+  }else{
+    NSLog(@"=========== NO CHANGES ========");
+  }
+  
   if (![managedObjectContext save:&error]) {
     // Replace this implementation with code to handle the error appropriately.
     // abort() causes the application to generate a crash log and terminate.
@@ -131,6 +175,7 @@ NSString *kEarthquakesMsgErrorKey = @"EarthquakesMsgErrorKey";
     NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
     abort();
   }
+  
 }
 
 // the main function for this NSOperation, to start the parsing
@@ -152,13 +197,13 @@ NSString *kEarthquakesMsgErrorKey = @"EarthquakesMsgErrorKey";
   //
   // first check if the operation has been cancelled, proceed if not
   //
-  if (![self isCancelled]) {
+//  if (![self isCancelled]) {
     if ([self.currentParseBatch count] > 0) {
       [self performSelectorOnMainThread:@selector(addEarthquakesToList:)
                              withObject:self.currentParseBatch
                           waitUntilDone:NO];
     }
-  }
+//  }
   
   self.currentParseBatch = nil;
   self.currentEarthquakeObject = nil;
@@ -168,7 +213,7 @@ NSString *kEarthquakesMsgErrorKey = @"EarthquakesMsgErrorKey";
 }
 
 - (void)dealloc {
-  [earthquakeData release];
+  self.earthquakeData = nil;
   
   [currentEarthquakeObject release];
   [currentParsedCharacterData release];
