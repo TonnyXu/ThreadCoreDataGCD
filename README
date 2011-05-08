@@ -1,0 +1,19 @@
+This is a sample app originally from Apple's sample code "ThreadCoreData"
+
+The original sample app uses NSOperation for multithread processing. This one using GCD instead.
+
+A simple rule to remember when using GCD+CoreData is allocating the MOC at the vary beginning of the GCD block. 
+
+Be more specifically,
+----------
+1) Create a new queue for MOC object.
+2) Init the MOC object at the very beginning block.
+3) Load the data in another queue using NSURLConnection.
+4) Parse the data in a third queue if necessary.
+5) Update or save the MOC in the current_queue.
+6) Using the MOCDidSaveNotification genereated by system to update the MOC in main queue.
+
+Notice
+----------
+The master branch is the original source code from Apple
+The GCD branch the using GCD.
